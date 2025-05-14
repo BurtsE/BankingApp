@@ -1,9 +1,10 @@
 package users
 
 import (
+	"BankingApp/internal/config"
 	"BankingApp/internal/model"
-	"BankingApp/internal/repository"
 	"BankingApp/internal/service"
+	"BankingApp/internal/storage"
 	"context"
 	"errors"
 	"time"
@@ -15,12 +16,12 @@ import (
 var _ service.UserService = (*Service)(nil)
 
 type Service struct {
-	repo      repository.UserRepository
+	repo      storage.UserStorage
 	jwtSecret []byte
 }
 
-func NewUserService(repo repository.UserRepository, jwtSecret []byte) *Service {
-	return &Service{repo: repo, jwtSecret: jwtSecret}
+func NewUserService(repo storage.UserStorage, cfg *config.Config) *Service {
+	return &Service{repo: repo, jwtSecret: []byte(cfg.JWTSecret)}
 }
 
 func (s *Service) Register(ctx context.Context, email, username, password, fullName string) (*model.User, error) {

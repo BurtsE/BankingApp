@@ -39,9 +39,9 @@ type CreditService interface {
 }
 
 type AnalyticService interface {
-	GetMonthlyReport(ctx context.Context, userID int64, month time.Month, year int) (*model.Analytics, error)
-	GetCreditLoadAnalytics(ctx context.Context, userID int64) (*model.CreditLoadAnalytics, error)
-	PredictBalance(ctx context.Context, accountID int64, days int) (*model.Prediction, error)
+	// GetMonthlyReport(ctx context.Context, userID int64, month time.Month, year int) (*model.Analytics, error)
+	// GetCreditLoadAnalytics(ctx context.Context, userID int64) (*model.CreditLoadAnalytics, error)
+	// PredictBalance(ctx context.Context, accountID int64, days int) (*model.Prediction, error)
 }
 
 type IntegrationService interface {

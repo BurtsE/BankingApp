@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"BankingApp/internal/config"
 	"BankingApp/internal/model"
 	"context"
 	"errors"
+	"fmt"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PostgresUserRepository struct {
@@ -14,8 +16,19 @@ type PostgresUserRepository struct {
 }
 
 // NewPostgresUserRepository конструктор для pgxpool
-func NewPostgresUserRepository(pool *pgxpool.Pool) *PostgresUserRepository {
-	return &PostgresUserRepository{pool: pool}
+func NewPostgresUserRepository(ctx context.Context, cfg *config.Config) (*PostgresUserRepository, error) {
+	DSN := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		cfg.UserPostgres.Host, cfg.UserPostgres.Username, cfg.UserPostgres.Password, cfg.UserPostgres.Database)
+	pool, err := pgxpool.New(ctx, DSN)
+	if err != nil {
+		return nil, err
+	}
+	if err = pool.Ping(ctx); err != nil {
+		return nil, err
+	}
+	return &PostgresUserRepository{
+		pool: pool,
+	}, nil
 }
 
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.User) (int64, error) {
