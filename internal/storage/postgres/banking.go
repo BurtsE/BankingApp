@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"BankingApp/internal/config"
 	"BankingApp/internal/model"
 	"BankingApp/internal/storage"
 	"context"
@@ -10,27 +9,9 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PostgresBankingRepository struct {
-	pool *pgxpool.Pool
-}
-
-func NewPostgresBankingRepository(ctx context.Context, cfg *config.Config) (*PostgresBankingRepository, error) {
-	DSN := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.BankingPostgres.Host, cfg.BankingPostgres.Username, cfg.BankingPostgres.Password, cfg.BankingPostgres.Database)
-	pool, err := pgxpool.New(ctx, DSN)
-	if err != nil {
-		return nil, err
-	}
-	if err = pool.Ping(ctx); err != nil {
-		return nil, err
-	}
-	return &PostgresBankingRepository{pool: pool}, nil
-}
-
-func (p *PostgresBankingRepository) CreateAccount(ctx context.Context, userID int64, currency string) (*model.Account, error) {
+func (p *PostgresRepository) CreateAccount(ctx context.Context, userID int64, currency string) (*model.Account, error) {
 	query := "INSERT INTO accounts (user_id, currency, balance) VALUES ($1, $2, 0.0) RETURNING id, user_id, currency, balance"
 	var acc model.Account
 	err := p.pool.QueryRow(ctx, query, userID, currency).Scan(
@@ -45,7 +26,7 @@ func (p *PostgresBankingRepository) CreateAccount(ctx context.Context, userID in
 	return &acc, nil
 }
 
-func (p *PostgresBankingRepository) GetAccountByID(ctx context.Context, accountID int64) (*model.Account, error) {
+func (p *PostgresRepository) GetAccountByID(ctx context.Context, accountID int64) (*model.Account, error) {
 	query := "SELECT id, user_id, currency, balance FROM accounts WHERE id=$1"
 	var acc model.Account
 	err := p.pool.QueryRow(ctx, query, accountID).Scan(
@@ -63,7 +44,7 @@ func (p *PostgresBankingRepository) GetAccountByID(ctx context.Context, accountI
 	return &acc, nil
 }
 
-func (p *PostgresBankingRepository) GetAccountsByUser(ctx context.Context, userID int64) ([]*model.Account, error) {
+func (p *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int64) ([]*model.Account, error) {
 	query := "SELECT id, user_id, currency, balance FROM accounts WHERE user_id=$1"
 	rows, err := p.pool.Query(ctx, query, userID)
 	if err != nil {
@@ -82,7 +63,7 @@ func (p *PostgresBankingRepository) GetAccountsByUser(ctx context.Context, userI
 	return accounts, rows.Err()
 }
 
-func (p *PostgresBankingRepository) UpdateAccountBalance(ctx context.Context, accountID int64, amount float64) error {
+func (p *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID int64, amount float64) error {
 	// This is a simple example. In practice you want to check for negative balances in a transaction!
 	query := "UPDATE accounts SET balance = balance + $1 WHERE id = $2"
 	result, err := p.pool.Exec(ctx, query, amount, accountID)
@@ -96,11 +77,10 @@ func (p *PostgresBankingRepository) UpdateAccountBalance(ctx context.Context, ac
 	return nil
 }
 
-func (p *PostgresBankingRepository) BeginTransaction(ctx context.Context) (storage.Transaction, error) {
+func (p *PostgresRepository) BeginTransaction(ctx context.Context) (storage.Transaction, error) {
 	tx, err := p.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("BeginTransaction: %w", err)
 	}
 	return tx, nil
 }
-

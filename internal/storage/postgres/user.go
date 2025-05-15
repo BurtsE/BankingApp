@@ -1,37 +1,14 @@
-package repository
+package postgres
 
 import (
-	"BankingApp/internal/config"
 	"BankingApp/internal/model"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PostgresUserRepository struct {
-	pool *pgxpool.Pool
-}
-
-// NewPostgresUserRepository конструктор для pgxpool
-func NewPostgresUserRepository(ctx context.Context, cfg *config.Config) (*PostgresUserRepository, error) {
-	DSN := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.UserPostgres.Host, cfg.UserPostgres.Username, cfg.UserPostgres.Password, cfg.UserPostgres.Database)
-	pool, err := pgxpool.New(ctx, DSN)
-	if err != nil {
-		return nil, err
-	}
-	if err = pool.Ping(ctx); err != nil {
-		return nil, err
-	}
-	return &PostgresUserRepository{
-		pool: pool,
-	}, nil
-}
-
-func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.User) (int64, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user *model.User) (int64, error) {
 	query := `
 		INSERT INTO users (email, password, full_name, created_at)
 		VALUES ($1, $2, $3, $4)
@@ -45,7 +22,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.Use
 	return id, nil
 }
 
-func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+func (r *PostgresRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
 		SELECT id, email, password, full_name, created_at
 		FROM users
@@ -64,7 +41,7 @@ func (r *PostgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	return user, nil
 }
 
-func (r *PostgresUserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+func (r *PostgresRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
 	query := `
 		SELECT id, email, password, full_name, created_at
 		FROM users
@@ -83,7 +60,7 @@ func (r *PostgresUserRepository) FindByUsername(ctx context.Context, username st
 	return user, nil
 }
 
-func (r *PostgresUserRepository) FindByID(ctx context.Context, userID int64) (*model.User, error) {
+func (r *PostgresRepository) FindByID(ctx context.Context, userID int64) (*model.User, error) {
 	query := `
 		SELECT id, email, password, full_name, created_at
 		FROM users

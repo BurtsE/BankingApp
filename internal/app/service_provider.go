@@ -4,86 +4,110 @@ import (
 	"BankingApp/internal/config"
 	"BankingApp/internal/router"
 	"BankingApp/internal/service"
-	"BankingApp/internal/storage"
-	pgUserStorage "BankingApp/internal/storage/users/postgres"
-	userService "BankingApp/internal/service/users"
-	pgBankingStorage "BankingApp/internal/storage/banking/postgres"
 	bankingService "BankingApp/internal/service/banking"
+	userService "BankingApp/internal/service/users"
+	storageImpl "BankingApp/internal/storage/postgres"
 	"context"
-	"log"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
+// serviceProvider есть DI-контейнер, производящий инициализацию сервисов и подключения к БД.
+// Глобальный контекст добавлен для Graceful shutdown
 type serviceProvider struct {
-	cfg         *config.Config
-	userStorage storage.UserStorage
-	userService service.UserService
-	bankingStorage storage.BankingStorage
+	cfg            *config.Config
+	storage        *storageImpl.PostgresRepository
+	userService    service.UserService
 	bankingService service.BankingService
-	router      *router.Router
+	router         *router.Router
+	logger         *logrus.Logger
+	errG           *errgroup.Group
+	ctx            context.Context
 }
 
-func NewSericeProvider() *serviceProvider {
-	s := &serviceProvider{}
+func NewServiceProvider(ctx context.Context) *serviceProvider {
+	errG, gCtx := errgroup.WithContext(ctx)
+	s := &serviceProvider{
+		errG: errG,
+		ctx:  gCtx,
+	}
+
 	s.Router()
 	return s
+}
+
+func (s *serviceProvider) Start() {
+	s.errG.Go(func() error {
+		s.logger.Printf("starting server on port: %s", s.Config().ServerPort)
+		return s.router.Start()
+	})
+	if err := s.errG.Wait(); err != nil {
+		s.logger.Printf("exit reason: %s \n", err)
+	}
 }
 
 func (s *serviceProvider) Config() *config.Config {
 	if s.cfg == nil {
 		cfg, err := config.InitConfig()
 		if err != nil {
-			log.Fatal(err)
+			s.logger.Fatal(err)
 		}
 		s.cfg = cfg
 	}
 	return s.cfg
 }
-
-func (s *serviceProvider) UserStorage() storage.UserStorage {
-	if s.userStorage == nil {
-		storage, err := pgUserStorage.NewPostgresUserRepository(context.Background(), s.Config())
+func (s *serviceProvider) Storage() *storageImpl.PostgresRepository {
+	if s.storage == nil {
+		storage, err := storageImpl.NewPostgresRepository(context.Background(), s.Config())
 		if err != nil {
-			log.Fatalf("could not init storage: %s", err.Error())
+			s.logger.Fatalf("could not init storage: %s", err.Error())
 		}
-		s.userStorage = storage
+		s.storage = storage
+		s.errG.Go(func() error {
+			<-s.ctx.Done()
+			s.logger.Println("closing user database...")
+			s.storage.Close()
+			return nil
+		})
 	}
-	return s.userStorage
+	return s.storage
 }
 
 func (s *serviceProvider) UserService() service.UserService {
 	if s.userService == nil {
-		s.userService = userService.NewUserService(s.UserStorage(), s.Config())
+		s.userService = userService.NewUserService(s.Storage(), s.Config())
 	}
 	return s.userService
 }
 
-func (s *serviceProvider) BankingStorage() storage.BankingStorage {
-	if s.bankingStorage == nil {
-		storage, err := pgBankingStorage.NewPostgresBankingRepository(context.Background(), s.Config())
-		if err != nil {
-			log.Fatalf("could not init storage: %s", err.Error())
-		}
-		s.bankingStorage = storage
-	}
-	return s.bankingStorage
-}
-
 func (s *serviceProvider) BankingService() service.BankingService {
 	if s.bankingService == nil {
-		s.bankingService = bankingService.NewBankingService(s.BankingStorage())
+		s.bankingService = bankingService.NewBankingService(s.Storage())
 	}
 	return s.bankingService
 }
 
-
 // Инициализация http-сервера.Для каждой области отдельная функция инициализации
 func (s *serviceProvider) Router() *router.Router {
 	if s.router == nil {
-		s.router = router.NewRouter(logrus.New(), s.Config())
+		s.router = router.NewRouter(s.Logger(), s.Config())
 		s.router.InitUserRoutes(s.UserService())
 		s.router.InitBankingRoutes(s.BankingService())
+		s.errG.Go(func() error {
+			<-s.ctx.Done()
+			s.logger.Println("shutting down server...")
+			return s.router.Stop(s.ctx)
+		})
 	}
 	return s.router
+}
+func (s *serviceProvider) Logger() *logrus.Logger {
+	if s.logger == nil {
+		s.logger = logrus.New()
+		if s.Config().LogLevel == "DEBUG" {
+			s.logger.Level = logrus.DebugLevel
+		}
+	}
+	return s.logger
 }

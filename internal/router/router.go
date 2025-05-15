@@ -5,6 +5,7 @@ import (
 	"BankingApp/internal/router/banking"
 	"BankingApp/internal/router/cards"
 	"BankingApp/internal/router/user"
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -45,17 +46,20 @@ func (r *Router) Start() error {
 		return fmt.Errorf("user routes were not initialized")
 	case r.bankingRouter == nil:
 		return fmt.Errorf("banking routes were not initialized")
-	case r.cardRouter == nil:
-		return fmt.Errorf("banking routes were not initialized")
+		// case r.cardRouter == nil:
+		// 	return fmt.Errorf("card routes were not initialized")
 	}
 	return r.srv.ListenAndServe()
+}
+
+func (r *Router) Stop(ctx context.Context) error {
+	return r.srv.Shutdown(ctx)
 }
 
 // InitUserService инициализирует сервис работы с пользователями
 func (r *Router) InitUserRoutes(userService service.UserService) {
 	r.userRouter = user.InitUserRouter(userService, r.logger, r.muxRouter)
 }
-
 
 func (r *Router) InitBankingRoutes(bankingService service.BankingService) {
 	r.bankingRouter = banking.InitBankingRouter(bankingService, r.logger, r.muxRouter)
@@ -69,5 +73,3 @@ func (r *Router) InitCardRoutes(cardService service.CardService) {
 func (r *Router) Handler() http.Handler {
 	return r.muxRouter
 }
-
-
