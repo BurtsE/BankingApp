@@ -1,0 +1,13 @@
+
+{
+  "port": "8080",
+  "jwt_secret": "your-secret-key",
+  "log_level": "info",
+  "postgres": {
+    "host": "postgres",
+    "port": "5432",
+    "username": "dbuser",
+    "password": "dbpass",
+    "database": "dbname"
+  }
+}

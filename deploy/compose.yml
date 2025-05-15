@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpass
+      POSTGRES_DB: dbname
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./internal/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d dbname"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+  app:
+    build:
+      context: ../
+      dockerfile: ./deploy/Dockerfile
+    container_name: bankingapp_go
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    # If migrations are Go binaries/scripts, add separate service or entrypoint
+    networks:
+      - internal
+
+networks:
+  internal:
