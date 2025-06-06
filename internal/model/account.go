@@ -5,10 +5,10 @@ import "time"
 // Account — банковский счет пользователя
 type Account struct {
 	ID        int64     `json:"id"`
-	UserID    int64     `json:"user_id"`
-	Number    string    `json:"number"`
 	Balance   float64   `json:"balance"`
+	UserID    string    `json:"user_id"`
+	Number    string    `json:"number"`
 	Currency  string    `json:"currency"`
-	IsActive  bool      `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
+	IsActive  bool      `json:"is_active"`
 }

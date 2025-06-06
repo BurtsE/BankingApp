@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:15
@@ -9,7 +8,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./internal/migrations:/docker-entrypoint-initdb.d:ro
+      - ../internal/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d dbname"]
       interval: 5s
@@ -26,7 +25,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    
+    environment:
+      SECRET_KEY: "very-secret-key"
     ports:
       - "8080:8080"
     restart: unless-stopped

@@ -16,8 +16,8 @@ type CreditSubRouter struct {
 
 func InitCardRouter(creditService service.CreditService, logger *logrus.Logger, muxRouter *mux.Router) *CreditSubRouter {
 	c := &CreditSubRouter{
-		muxRouter:   muxRouter,
-		logger:      logger,
+		muxRouter:     muxRouter.PathPrefix("/credit").Subrouter(),
+		logger:        logger,
 		creditService: creditService,
 	}
 	secured := c.muxRouter.NewRoute().Subrouter()

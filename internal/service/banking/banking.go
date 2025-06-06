@@ -16,7 +16,7 @@ func NewBankingService(storage storage.BankingStorage) *BankingService {
 	return &BankingService{storage: storage}
 }
 
-func (s *BankingService) CreateAccount(ctx context.Context, userID int64, currency string) (*model.Account, error) {
+func (s *BankingService) CreateAccount(ctx context.Context, userID string, currency string) (*model.Account, error) {
 	return s.storage.CreateAccount(ctx, userID, currency)
 }
 
@@ -76,7 +76,7 @@ func (s *BankingService) Transfer(ctx context.Context, fromAccountID, toAccountI
 	return nil
 }
 
-func (s *BankingService) GetAccountsByUser(ctx context.Context, userID int64) ([]*model.Account, error) {
+func (s *BankingService) GetAccountsByUser(ctx context.Context, userID string) ([]*model.Account, error) {
 	return s.storage.GetAccountsByUser(ctx, userID)
 }
 

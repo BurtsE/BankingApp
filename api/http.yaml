@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
-  /api/v1/users/register:
+  /api/v1/user/register:
     post:
       summary: Register a new user
       requestBody:
@@ -24,7 +24,7 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: Invalid request payload
-  /api/v1/users/login:
+  /api/v1/user/login:
     post:
       summary: Login user
       requestBody:
@@ -131,7 +131,7 @@ components:
     UserLoginRequest:
       type: object
       properties:
-        username:
+        email:
           type: string
         password:
           type: string

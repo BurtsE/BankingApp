@@ -5,6 +5,7 @@ import (
 	"BankingApp/internal/router/banking"
 	"BankingApp/internal/router/cards"
 	"BankingApp/internal/router/user"
+	"BankingApp/pkg/middleware"
 	"context"
 	"fmt"
 	"net/http"
@@ -29,7 +30,7 @@ type Router struct {
 // NewRouter — конструктор роутера, регистрирует все endpoint'ы
 func NewRouter(logger *logrus.Logger, cfg *config.Config) *Router {
 	r := &Router{
-		muxRouter: mux.NewRouter(),
+		muxRouter: mux.NewRouter().PathPrefix("/api/v1").Subrouter(),
 		logger:    logger,
 	}
 	r.srv = &http.Server{
@@ -38,6 +39,8 @@ func NewRouter(logger *logrus.Logger, cfg *config.Config) *Router {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+	loggingMiddleware := middleware.NewLoggingMiddleware(logger)
+	r.muxRouter.Use(loggingMiddleware)
 	return r
 }
 func (r *Router) Start() error {
@@ -57,17 +60,15 @@ func (r *Router) Stop(ctx context.Context) error {
 }
 
 // InitUserService инициализирует сервис работы с пользователями
-func (r *Router) InitUserRoutes(userService service.UserService) {
-	r.userRouter = user.InitUserRouter(userService, r.logger, r.muxRouter)
-}
-
-func (r *Router) InitBankingRoutes(bankingService service.BankingService) {
+func (r *Router) InitRoutes(userService service.UserService, bankingService service.BankingService) {
+	r.userRouter = user.InitUserRouter(userService, r.logger, r.muxRouter)	
 	r.bankingRouter = banking.InitBankingRouter(bankingService, r.logger, r.muxRouter)
 }
 
 func (r *Router) InitCardRoutes(cardService service.CardService) {
 	r.cardRouter = cards.InitCardRouter(cardService, r.logger, r.muxRouter)
 }
+
 
 // Handler возвращает основной http.Handler
 func (r *Router) Handler() http.Handler {

@@ -15,11 +15,11 @@ type UserService interface {
 }
 
 type BankingService interface {
-	CreateAccount(ctx context.Context, userID int64, currency string) (*model.Account, error)
+	CreateAccount(ctx context.Context, userID string, currency string) (*model.Account, error)
 	Deposit(ctx context.Context, accountID int64, amount float64) error
 	Withdraw(ctx context.Context, accountID int64, amount float64) error
 	Transfer(ctx context.Context, fromAccountID, toAccountID int64, amount float64) error
-	GetAccountsByUser(ctx context.Context, userID int64) ([]*model.Account, error)
+	GetAccountsByUser(ctx context.Context, userID string) ([]*model.Account, error)
 	GetAccountByID(ctx context.Context, accountID int64) (*model.Account, error)
 }
 

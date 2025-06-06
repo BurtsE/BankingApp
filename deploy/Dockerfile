@@ -20,4 +20,6 @@ WORKDIR /app
 COPY --from=builder /app/bankingapp .
 ADD configs/app_config.json configs/app_config.json
 
+EXPOSE 8080
+
 CMD ["./bankingapp"]

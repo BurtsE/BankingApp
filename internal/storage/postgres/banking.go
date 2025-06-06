@@ -11,14 +11,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostgresRepository) CreateAccount(ctx context.Context, userID int64, currency string) (*model.Account, error) {
-	query := "INSERT INTO accounts (user_id, currency, balance) VALUES ($1, $2, 0.0) RETURNING id, user_id, currency, balance"
+func (p *PostgresRepository) CreateAccount(ctx context.Context, userID string, currency string) (*model.Account, error) {
+	query := "INSERT INTO accounts (user_id, currency, balance) VALUES ($1, $2, 0.0) RETURNING id, user_id, currency, balance, is_active"
 	var acc model.Account
 	err := p.pool.QueryRow(ctx, query, userID, currency).Scan(
 		&acc.ID,
 		&acc.UserID,
 		&acc.Currency,
 		&acc.Balance,
+		&acc.IsActive,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("CreateAccount: %w", err)
@@ -44,7 +45,7 @@ func (p *PostgresRepository) GetAccountByID(ctx context.Context, accountID int64
 	return &acc, nil
 }
 
-func (p *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int64) ([]*model.Account, error) {
+func (p *PostgresRepository) GetAccountsByUser(ctx context.Context, userID string) ([]*model.Account, error) {
 	query := "SELECT id, user_id, currency, balance FROM accounts WHERE user_id=$1"
 	rows, err := p.pool.Query(ctx, query, userID)
 	if err != nil {

@@ -92,8 +92,7 @@ func (s *serviceProvider) BankingService() service.BankingService {
 func (s *serviceProvider) Router() *router.Router {
 	if s.router == nil {
 		s.router = router.NewRouter(s.Logger(), s.Config())
-		s.router.InitUserRoutes(s.UserService())
-		s.router.InitBankingRoutes(s.BankingService())
+		s.router.InitRoutes(s.UserService(), s.BankingService())
 		s.errG.Go(func() error {
 			<-s.ctx.Done()
 			s.logger.Println("shutting down server...")

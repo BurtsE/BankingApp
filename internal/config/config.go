@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -32,3 +33,16 @@ func InitConfig() (*Config, error) {
 	}
 	return c, nil
 }
+
+
+func GetJWTSecretKey() string {
+	return getEnv("SECRET_KEY")
+}
+func getEnv(param string) string {
+	val := os.Getenv(param)
+	if val == "" {
+		log.Fatalf("env not set: %s", param)
+	}
+	return val
+}
+ 

@@ -7,9 +7,11 @@ import (
 	"BankingApp/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,16 +23,20 @@ type Service struct {
 }
 
 func NewUserService(repo storage.UserStorage, cfg *config.Config) *Service {
-	return &Service{repo: repo, jwtSecret: []byte(cfg.JWTSecret)}
+	return &Service{repo: repo, jwtSecret: []byte(config.GetJWTSecretKey())}
 }
 
 func (s *Service) Register(ctx context.Context, email, username, password, fullName string) (*model.User, error) {
 	// Проверим уникальность email и username
-	if user, _ := s.repo.FindByEmail(ctx, email); user != nil {
+	if user, err := s.repo.FindByEmail(ctx, email); user != nil {
 		return nil, errors.New("email уже зарегистрирован")
+	} else if err != nil {
+		return nil, fmt.Errorf("database error: %v", err)
 	}
-	if user, _ := s.repo.FindByUsername(ctx, username); user != nil {
+	if user, err := s.repo.FindByUsername(ctx, username); user != nil {
 		return nil, errors.New("username уже занят")
+	} else if err != nil {
+		return nil, fmt.Errorf("database error: %v", err)
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -39,16 +45,16 @@ func (s *Service) Register(ctx context.Context, email, username, password, fullN
 	}
 
 	user := &model.User{
+		UUID:      uuid.New().String(),
 		Email:     email,
 		Password:  string(hash),
 		FullName:  fullName,
 		CreatedAt: time.Now(),
 	}
-	id, err := s.repo.CreateUser(ctx, user)
+	err = s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
-	user.ID = id
 	return user, nil
 }
 
@@ -64,7 +70,7 @@ func (s *Service) Authenticate(ctx context.Context, email, password string) (str
 	// Генерируем JWT
 	exp := time.Now().Add(24 * time.Hour)
 	claims := jwt.RegisteredClaims{
-		Subject:   email,
+		Subject:   user.UUID,
 		ExpiresAt: jwt.NewNumericDate(exp),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

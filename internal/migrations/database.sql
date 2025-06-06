@@ -1,7 +1,7 @@
 
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
+    uuid VARCHAR(255) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
@@ -11,15 +11,15 @@ CREATE TABLE IF NOT EXISTS users (
 -- ACCOUNTS
 CREATE TABLE IF NOT EXISTS accounts (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    number VARCHAR(34) NOT NULL,
+    user_id VARCHAR(256) NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
+    -- number VARCHAR(34) NOT NULL,
     balance NUMERIC(18,2) NOT NULL DEFAULT 0,
     currency VARCHAR(8) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS uidx_account_number ON accounts(number);
+-- CREATE UNIQUE INDEX IF NOT EXISTS uidx_account_number ON accounts(number);
 
 -- CARDS
 CREATE TABLE IF NOT EXISTS cards (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- CREDITS
 CREATE TABLE IF NOT EXISTS credits (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id VARCHAR(256) NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
     amount NUMERIC(18,2) NOT NULL,
     currency VARCHAR(8) NOT NULL,
     rate NUMERIC(8,3) NOT NULL,           -- процентная ставка

@@ -17,15 +17,15 @@ type CardSubRouter struct {
 
 func InitCardRouter(cardService service.CardService, logger *logrus.Logger, muxRouter *mux.Router) *CardSubRouter {
 	c := &CardSubRouter{
-		muxRouter:   muxRouter,
+		muxRouter:   muxRouter.PathPrefix("/cards").Subrouter(),
 		logger:      logger,
 		cardService: cardService,
 	}
 	secured := c.muxRouter.NewRoute().Subrouter()
 	// secured.Use(router.jwtMiddleware) // JWT middleware
 
-	secured.HandleFunc("/cards", c.issueCardHandler).Methods("POST")
-	secured.HandleFunc("/cards", c.showCardHandler).Methods("GET")
+	secured.HandleFunc("/issue", c.issueCardHandler).Methods("POST")
+	secured.HandleFunc("/show", c.showCardHandler).Methods("GET")
 	return c
 }
 

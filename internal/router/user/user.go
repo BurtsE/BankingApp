@@ -18,13 +18,13 @@ type UserSubRouter struct {
 
 func InitUserRouter(userService service.UserService, logger *logrus.Logger, muxRouter *mux.Router) *UserSubRouter {
 	u := &UserSubRouter{
-		muxRouter:   muxRouter,
+		muxRouter:   muxRouter.PathPrefix("/user").Subrouter(),
 		logger:      logger,
 		userService: userService,
 	}
 	u.muxRouter.HandleFunc("/register", u.registerHandler).Methods("POST")
 	u.muxRouter.HandleFunc("/login", u.loginHandler).Methods("POST")
-	u.muxRouter.HandleFunc("/user/{id:[0-9]+}", u.getUserByIDHandler).Methods("GET")
+	u.muxRouter.HandleFunc("/{id:[0-9]+}", u.getUserByIDHandler).Methods("GET")
 	return u
 }
 
