@@ -39,7 +39,7 @@ func InitBankingRouter(bankingService service.BankingService, logger *logrus.Log
 func (br *BankingSubRouter) routes() {
 	br.muxRouter.HandleFunc("/account", br.createAccountHandler).Methods("POST")
 	br.muxRouter.HandleFunc("/account/{id:[0-9]+}/deposit", br.depositHandler).Methods("POST")
-	br.muxRouter.HandleFunc("/account/{id:[0-9]+}withdraw", br.withdrawHandler).Methods("POST")
+	br.muxRouter.HandleFunc("/account/{id:[0-9]+}/withdraw", br.withdrawHandler).Methods("POST")
 	br.muxRouter.HandleFunc("/account/transfer", br.transferHandler).Methods("POST")
 	// br.muxRouter.HandleFunc("/account/{id:[0-9]+}", br.getAccountByIDHandler).Methods("GET")
 	// br.muxRouter.HandleFunc("/account/user/{id:[0-9]+}/accounts", br.getAccountsByUserHandler).Methods("GET")
