@@ -3,12 +3,14 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/gorilla/mux"
 )
-
 
 type contextKey string
 
@@ -55,7 +57,6 @@ func validateJWT(tokenStr, secret string) (string, error) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		// В данном примере ожидаем, что user_id числовой
-		claims.GetIssuer()
 		UUID, err := claims.GetSubject()
 		if err != nil {
 			return "", errors.New("user_id missing in token")
@@ -63,4 +64,32 @@ func validateJWT(tokenStr, secret string) (string, error) {
 		return UUID, nil
 	}
 	return "", errors.New("invalid token")
+}
+
+func ValidateUser(r *http.Request) (string, error) {
+	var (
+		userID string
+		ok     bool
+	)
+	if userID, ok = r.Context().Value(UserIDKey).(string); !ok {
+		// http.Error(w, "Invalid user", http.StatusUnauthorized)
+		return "", fmt.Errorf("not authenticated user")
+	}
+
+	return userID, nil
+}
+
+func ValidateAccount(r *http.Request) (int64, error) {
+	vars := mux.Vars(r)
+	accountIDStr := vars["id"]
+	if accountIDStr == "" {
+		// http.Error(w, "could not get account", http.StatusInternalServerError)
+		return 0, fmt.Errorf(" missing account id")
+	}
+	accountID, err := strconv.ParseInt(accountIDStr, 10, 64)
+	if err != nil {
+		// http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return 0, fmt.Errorf(" missing account id")
+	}
+	return accountID, nil
 }

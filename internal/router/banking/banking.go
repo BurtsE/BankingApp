@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -64,7 +63,7 @@ type transferRequest struct {
 // ----------- HANDLERS ------------
 
 func (br *BankingSubRouter) createAccountHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := validateUser(r)
+	userID, err := middleware.ValidateUser(r)
 	if err != nil {
 		http.Error(w, "Invalid user", http.StatusUnauthorized)
 		return
@@ -85,12 +84,12 @@ func (br *BankingSubRouter) createAccountHandler(w http.ResponseWriter, r *http.
 }
 
 func (br *BankingSubRouter) depositHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := validateUser(r)
+	userID, err := middleware.ValidateUser(r)
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
 	}
-	accountID, err := validateAccount(r)
+	accountID, err := middleware.ValidateAccount(r)
 	if err != nil {
 		http.Error(w, "Invalid account", http.StatusBadRequest)
 		return
@@ -115,12 +114,12 @@ func (br *BankingSubRouter) depositHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (br *BankingSubRouter) withdrawHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := validateUser(r)
+	userID, err := middleware.ValidateUser(r)
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
 	}
-	accountID, err := validateAccount(r)
+	accountID, err := middleware.ValidateAccount(r)
 	if err != nil {
 		http.Error(w, "Invalid account", http.StatusBadRequest)
 		return
@@ -145,7 +144,7 @@ func (br *BankingSubRouter) withdrawHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (br *BankingSubRouter) transferHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := validateUser(r)
+	userID, err := middleware.ValidateUser(r)
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
@@ -208,34 +207,6 @@ func (br *BankingSubRouter) transferHandler(w http.ResponseWriter, r *http.Reque
 // }
 
 // ----------- HELPERS --------------
-
-func validateUser(r *http.Request) (string, error) {
-	var (
-		userID string
-		ok     bool
-	)
-	if userID, ok = r.Context().Value(middleware.UserIDKey).(string); !ok {
-		// http.Error(w, "Invalid user", http.StatusUnauthorized)
-		return "", fmt.Errorf("not authenticated user")
-	}
-
-	return userID, nil
-}
-
-func validateAccount(r *http.Request) (int64, error) {
-	vars := mux.Vars(r)
-	accountIDStr := vars["id"]
-	if accountIDStr == "" {
-		// http.Error(w, "could not get account", http.StatusInternalServerError)
-		return 0, fmt.Errorf(" missing account id")
-	}
-	accountID, err := strconv.ParseInt(accountIDStr, 10, 64)
-	if err != nil {
-		// http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return 0, fmt.Errorf(" missing account id")
-	}
-	return accountID, nil
-}
 
 func parseIDFromVars(r *http.Request, varName string) (int64, error) {
 	vars := mux.Vars(r)

@@ -26,7 +26,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SECRET_KEY: "very-secret-key"
+      JWT_SECRET_KEY: "very-secret-key"
+      CARD_SECRET_KEY: "passphrasewhichneedstobe32bytes!"
     ports:
       - "8080:8080"
     restart: unless-stopped

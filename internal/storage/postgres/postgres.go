@@ -9,7 +9,9 @@ import (
 )
 
 type PostgresRepository struct {
-	pool *pgxpool.Pool
+	encryptionPublicKey  []byte
+	encryptionPrivateKey []byte
+	pool                 *pgxpool.Pool
 }
 
 // NewPostgresUserRepository конструктор для pgxpool
@@ -23,9 +25,13 @@ func NewPostgresRepository(ctx context.Context, cfg *config.Config) (*PostgresRe
 	if err = pool.Ping(ctx); err != nil {
 		return nil, err
 	}
-	return &PostgresRepository{
-		pool: pool,
-	}, nil
+	repo := &PostgresRepository{
+		pool:                 pool,
+		encryptionPublicKey:  []byte(config.GetEncryptionPublicKey()),
+		encryptionPrivateKey: []byte(config.GetEncryptionPrivateKey()),
+	}
+
+	return repo, nil
 }
 
 func (p *PostgresRepository) Close() {

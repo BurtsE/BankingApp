@@ -1,8 +1,13 @@
 package cards
 
 import (
+	"BankingApp/internal/config"
 	"BankingApp/internal/service"
+	"BankingApp/pkg/middleware"
+	"context"
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -21,17 +26,50 @@ func InitCardRouter(cardService service.CardService, logger *logrus.Logger, muxR
 		logger:      logger,
 		cardService: cardService,
 	}
-	secured := c.muxRouter.NewRoute().Subrouter()
-	// secured.Use(router.jwtMiddleware) // JWT middleware
+	authMiddleware := middleware.NewAuthMiddleware(config.GetJWTSecretKey())
+	c.muxRouter.Use(authMiddleware)
 
-	secured.HandleFunc("/issue", c.issueCardHandler).Methods("POST")
-	secured.HandleFunc("/show", c.showCardHandler).Methods("GET")
+	c.routes()
 	return c
 }
 
+func (c *CardSubRouter) routes() {
+	c.muxRouter.HandleFunc("/issue", c.issueCardHandler).Methods("POST")
+	c.muxRouter.HandleFunc("/show", c.showCardHandler).Methods("GET")
+}
+
+// --------- API struct TYPES -----------
+
+type issueCardRequest struct {
+	AccountId int64  `json:"account_id"`
+	UserName  string `json:"user_name`
+}
+
+type showCardsRequest struct {
+	accountId int64 `json:"account_id"`
+}
+
+// ----------- HANDLERS ------------
+
 func (c *CardSubRouter) issueCardHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := middleware.ValidateUser(r)
+	if err != nil {
+		http.Error(w, "Invalid user", http.StatusUnauthorized)
+		return
+	}
+	var req issueCardRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*20)
+	card, err := c.cardService.GenerateVirtualCard(ctx, req.AccountId, req.UserName)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(`{"message":"Карта выпущена"}`))
+	json.NewEncoder(w).Encode(card)
 }
 func (c *CardSubRouter) showCardHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)

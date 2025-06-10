@@ -36,7 +36,19 @@ func InitConfig() (*Config, error) {
 
 
 func GetJWTSecretKey() string {
-	return getEnv("SECRET_KEY")
+	return getEnv("JWT_SECRET_KEY")
+}
+
+func GetCardSecretKey() string {
+	return getEnv("CARD_SECRET_KEY")
+}
+
+func GetEncryptionPublicKey() string {
+	return getEnv("ENCRYPTION_PUBLIC_KEY")
+}
+
+func GetEncryptionPrivateKey() string {
+	return getEnv("ENCRYPTION_PRIVATE_KEY")
 }
 func getEnv(param string) string {
 	val := os.Getenv(param)

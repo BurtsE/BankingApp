@@ -21,6 +21,12 @@ type BankingStorage interface {
 	BeginTransaction(ctx context.Context) (Transaction, error)
 }
 
+type CardStorage interface {
+	CreateVirtualCard(ctx context.Context, card *model.Card) (int64, error)
+	GetAccountByID(ctx context.Context, accountID int64) (*model.Account, error)
+	GetCardsByAccount(ctx context.Context, accountID int64) ([]*model.Card, error)
+}
+
 type Transaction interface {
 	Commit(context.Context) error
 	Rollback(context.Context) error

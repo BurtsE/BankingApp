@@ -1,4 +1,3 @@
-
 package service
 
 import (
@@ -45,7 +44,6 @@ type AnalyticService interface {
 }
 
 type IntegrationService interface {
-	GetCentralBankKeyRate(ctx context.Context, date time.Time) (float64, error)      // SOAP запрос и парсинг XML
+	GetCentralBankKeyRate(ctx context.Context, date time.Time) (float64, error)       // SOAP запрос и парсинг XML
 	SendPaymentNotificationEmail(ctx context.Context, to, subject, body string) error // SMTP/SIMPLE
 }
-
