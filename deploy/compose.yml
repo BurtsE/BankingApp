@@ -28,6 +28,103 @@ services:
     environment:
       JWT_SECRET_KEY: "very-secret-key"
       CARD_SECRET_KEY: "passphrasewhichneedstobe32bytes!"
+      ENCRYPTION_PUBLIC_KEY: |
+        -----BEGIN PGP PUBLIC KEY BLOCK-----
+        
+        xsBNBGhIU9YBCAC8kadFAvEpxVpxRl++kJlZOPsKTrZdn8TZz/LrOIEO1/Xx
+        e39efWbakyBpf0e86GoXaAswtUlHSbBEXKknfWxAhnCiajwN3q9aKD1rk7RN
+        j2hsBTWgCnLx02L7CptBaRYovIuQrGkMODFc/tjhX6izvLUiZXirWR0FRhyO
+        3JWcbBZgxl+x15jZzkmGGJDgmnaljvee67uspVBgsJ+11zGJGdI1wYSHjfHC
+        LwWY6OmLS/9kRpg6DHAxtvLAXTY8ScZILHuD1H0f0rOMZTD97BTzv4O+R5vy
+        xnu94dXbKfBeZEhiyDC2E2v8xrZjE1vTdKkT1WOXhX0J4be6b7bsBsiXABEB
+        AAHNF25hbWUgPG15ZW1haWxAbWFpbC5jb20+wsCKBBABCAA+BQJoSFPWBAsJ
+        BwgJEAPoedRAgEvAAxUICgQWAAIBAhkBAhsDAh4BFiEEAQHX4OazC8CtFKzg
+        A+h51ECAS8AAADTkB/9kK0AB1b1LSWAWbLlGskJMRWw1wlA80vgigDVdEPsF
+        C6qv3ASxcbXnVPKsVpTA9poPNBVtojPlqXQMm132vsXRJUH2KqrFgLdRbLmi
+        8LoDi97BV/ubZqPSMZip2wjmps8RDloRBILLyFOT/exwE/kicYq0Dyr4lLmj
+        I1ypDW4tDE363XsIX38ur4tsdFDDUNtIH1/XjKipuyXzxVnxn6t9kEPBX7jW
+        xOh7gnsGlRduuqtbzmyeBswu8Ir4fc8AF6Suvf5x/a4N+1dDGWPdav42oJ3V
+        QmEp00roxoiZj3vtU+JQOX1FWX1iZZ8xNqQ7Tp9XzD5xmf7d2WxqL2wjZzkW
+        zsBNBGhIU9YBCADBbEqWfidJz9jjqrHlVWMHkEI95INj0OELGtyGJZyLto/X
+        BuFYt4b3vOx1viMl1yN6diNe+WViJIQ4vocsNbkjWk34qzTlc8kZ33JDBHDK
+        XGNDfcAwF9OgH9e9Z4OmdVkONt9zUdv4f5DdZXyy/akTi+VWdjGZgEq1EUsJ
+        R9lPdij7U+qdzBf9b/kZBrjc1DQnLVP1SeisnSX0mLeMzdRfVhSaZuYBbtga
+        hQm1DiZBUEdNaG/VFIzJb8j+Lu8jLYiJtFw7e5OvXxPlRGPpELAkopyqFatS
+        hvUbpgFX6RxX3oXLyoIItxwtOpXHuMuCk8lGAkETw0zYt2pjyti51nN5ABEB
+        AAHCwHYEGAEIACoFAmhIU9YJEAPoedRAgEvAAhsMFiEEAQHX4OazC8CtFKzg
+        A+h51ECAS8AAALnIB/4uS4ZccwVYX09MTsRgxHPcSGrmX21kwSlyI9eedfRb
+        ta4ZEztR4Jd7fkD4Xmqj81Oq9IvmRvDhcV/G70mlk7WJLKCJnrYtjyR45yO4
+        W1z/i0J/+D3L2KaXb4/vf8aMJSaqWBMz/ZEIRRUms84pqyyQW0rgk4WLz/md
+        tUeUmb0+HtOrHQXNlRGtMEkEGBkovSJLj7EXFuxdIG9GmHaFqqG7Fm8x26YK
+        2imxyMwaq1AjPjD4MgcFF4psTIpLW+wLHIcb3tsJ7BOPuxFEvgeS6FJr4Y/C
+        dNq8UZ21jh/TR5Zdb2gga2L6DWX7wmjd8NeVDUIGekWn5tCN3V/GstHIzL8j
+        =VCRC
+        -----END PGP PUBLIC KEY BLOCK-----
+
+      ENCRYPTION_PRIVATE_KEY: |
+        -----BEGIN PGP PRIVATE KEY BLOCK-----
+
+        xcMGBGhIU9YBCAC8kadFAvEpxVpxRl++kJlZOPsKTrZdn8TZz/LrOIEO1/Xx
+        e39efWbakyBpf0e86GoXaAswtUlHSbBEXKknfWxAhnCiajwN3q9aKD1rk7RN
+        j2hsBTWgCnLx02L7CptBaRYovIuQrGkMODFc/tjhX6izvLUiZXirWR0FRhyO
+        3JWcbBZgxl+x15jZzkmGGJDgmnaljvee67uspVBgsJ+11zGJGdI1wYSHjfHC
+        LwWY6OmLS/9kRpg6DHAxtvLAXTY8ScZILHuD1H0f0rOMZTD97BTzv4O+R5vy
+        xnu94dXbKfBeZEhiyDC2E2v8xrZjE1vTdKkT1WOXhX0J4be6b7bsBsiXABEB
+        AAH+CQMIH8LZZhEv/njgVVvw4IVT4LPNovLuOKqWDD3mwoKRLkmdF4ezMqt9
+        r6b3NMLNo6PsyKJ53c3OBpdSjsOLvzOgGb5rfZR1HPfuKCrfSAkgt/X83nXr
+        6FeRlWKstkjeKsMDqUDru8+mjlSuFCxQPPLLIflBJbEj8rAvp6ZXwpZ8cycj
+        0kWzSC5EC+MemsZ3sBgJa71V3oPfpleVzpe7cgK/Rf0xi4JejkVxjBRk24Af
+        iGl0pNjFrGFmJQgeCnOrFTi2YynpS342bNtlxnVqSqd+1Qd3D05HLWVNLeea
+        XzRaghZYEfIBby8Y71m/Imt0wsy7e259bMJVw/nHEFWkDtJGDK9l8m0taEyJ
+        IoNEyW5izqEosFVYJ9vPP8GwKRs8qzljvqI0+QmUcYCAybZZ/KvwuKOmrFCf
+        U+1rKTou4U8E84FkFo+qaZZT73Q7U8LUV2nNKpGp8VqZZqaLpKum1gZIlIyW
+        kTlKLxTPz+bTx+ToWRw6LwI8UlKvGbBCVS4KgXEcpS+0bGOxDa9qBhhVHm71
+        jMxGMb4YVdN6OuL5USt1A1tunHwuj8bSwwhwXD02mHKrHw6I+xyQrxR+ANuu
+        FNV5bvtVaw3rKjxqJF0fn6Vv+B5icCuG4XI2pdllUprPqLbvZJdmuR+rzotv
+        3Xzg3J2nHr8zlY0U+vMfg4lZOjhL7ePs8jw/ZihkZylxzIFDRACSgU8ltrIk
+        3zs71e1IJ0eChXbq09Pm47s8vehGZ+UOkMe2073SbipmmHEdZS5DEi64zoUg
+        Mzfjaz5fvg8YtC7Evn/4mSncei+FJ3Kp4niK9oG0Rfs1fB19cdN8JIVWVQ3g
+        aHZ+6VMh0pZGrS2NCx52PbOOMFtcy1k9hA9iehn8mLkCdaQHhYVo55dNNjzh
+        6g5ww4EUPb5TbRUC3NjmM9B8QS3eJ3RpzRduYW1lIDxteWVtYWlsQG1haWwu
+        Y29tPsLAigQQAQgAPgUCaEhT1gQLCQcICRAD6HnUQIBLwAMVCAoEFgACAQIZ
+        AQIbAwIeARYhBAEB1+DmswvArRSs4APoedRAgEvAAAA05Af/ZCtAAdW9S0lg
+        Fmy5RrJCTEVsNcJQPNL4IoA1XRD7BQuqr9wEsXG151TyrFaUwPaaDzQVbaIz
+        5al0DJtd9r7F0SVB9iqqxYC3UWy5ovC6A4vewVf7m2aj0jGYqdsI5qbPEQ5a
+        EQSCy8hTk/3scBP5InGKtA8q+JS5oyNcqQ1uLQxN+t17CF9/Lq+LbHRQw1Db
+        SB9f14yoqbsl88VZ8Z+rfZBDwV+41sToe4J7BpUXbrqrW85sngbMLvCK+H3P
+        ABekrr3+cf2uDftXQxlj3Wr+NqCd1UJhKdNK6MaImY977VPiUDl9RVl9YmWf
+        MTakO06fV8w+cZn+3dlsai9sI2c5FsfDBQRoSFPWAQgAwWxKln4nSc/Y46qx
+        5VVjB5BCPeSDY9DhCxrchiWci7aP1wbhWLeG97zsdb4jJdcjenYjXvllYiSE
+        OL6HLDW5I1pN+Ks05XPJGd9yQwRwylxjQ33AMBfToB/XvWeDpnVZDjbfc1Hb
+        +H+Q3WV8sv2pE4vlVnYxmYBKtRFLCUfZT3Yo+1PqncwX/W/5GQa43NQ0Jy1T
+        9UnorJ0l9Ji3jM3UX1YUmmbmAW7YGoUJtQ4mQVBHTWhv1RSMyW/I/i7vIy2I
+        ibRcO3uTr18T5URj6RCwJKKcqhWrUob1G6YBV+kcV96Fy8qCCLccLTqVx7jL
+        gpPJRgJBE8NM2LdqY8rYudZzeQARAQAB/gkDCDc280prTgsn4C2YzEeMZqgQ
+        3z4vC3bV2yblZcWtvhQyfpTgdr3hQBkuX7wOYWCQcihVYt1HQl4gwsFZ5iZC
+        sYhiMBU01tgjtHwaWG/emBRkQwo2JriNVjD+7272cA2soS5WLOsOf6b0nlwf
+        bazjJ5msBHSGYBJEJCxxfwKVsa6gwuqlQIoPFYcSUpQOiGrO7yeBuiWTFq81
+        JOiNNyx5t9J4504DfyHYshbjHsg30CG/ZPGCUOCoBDzBaiOGJ7mShOq6Kws6
+        lRkxMRr4nvfioCXj46pHQmf6t+zeOpbb0w5bWz+n4nI/unVNhPkwUwhZIGrE
+        gx4KkUcxg2QEbuhLrssXprecMo/cHzl6stm897AR7a6XKTFEgvakCddvJN63
+        2jPiefXa65rUv+B+hpGzn5TqPBoc1Tb0hJj4WCOwols13zctH3R/0SsGq0nq
+        /b7vWehbbcPtyIMeiwa+vn7oXxMcxxUeQtogaogvaZbY5yacWpY2WCxtzuMh
+        08WpRQyhX+M+NZ5YvprQQPrE4i+bs4SKVjKI6FcIANN2i+0HovXPhpIRcpsl
+        wfnqVfFNKb0cPzunZEVdc/nMWmyt2QPlZS01ltTBvRZyqLhzn0dwvRLIM+j7
+        2rV9htkUBsNV5puq02vJPdkT/DQdHhjXL/4D6Nd/zooNaJ1z9aqJLja2ueRh
+        +zGqNhLJgSTxMjDBmaxyHmT1IGUdn1Da6dpBsomwPNkJwkIHQvbRz0soIRCc
+        NcoiJVxUwTDUGW5KnngwhAza9bxdOYrVr7FQd5GSRnIe74SzhnzitbNQELEO
+        LASR3iHeAdOZrkBySILhDpPVviCceKpYpvSEf49Pt9cfehK8Q+HyeGtLTfDO
+        p3jKOKxN3zIaeeyff+ydTYjmtaLLVmHl4VFVv5bAaOB6onOip1mF/a1njNxk
+        wsB2BBgBCAAqBQJoSFPWCRAD6HnUQIBLwAIbDBYhBAEB1+DmswvArRSs4APo
+        edRAgEvAAAC5yAf+LkuGXHMFWF9PTE7EYMRz3Ehq5l9tZMEpciPXnnX0W7Wu
+        GRM7UeCXe35A+F5qo/NTqvSL5kbw4XFfxu9JpZO1iSygiZ62LY8keOcjuFtc
+        /4tCf/g9y9iml2+P73/GjCUmqlgTM/2RCEUVJrPOKasskFtK4JOFi8/5nbVH
+        lJm9Ph7Tqx0FzZURrTBJBBgZKL0iS4+xFxbsXSBvRph2haqhuxZvMdumCtop
+        scjMGqtQIz4w+DIHBReKbEyKS1vsCxyHG97bCewTj7sRRL4HkuhSa+GPwnTa
+        vFGdtY4f00eWXW9oIGti+g1l+8Jo3fDXlQ1CBnpFp+bQjd1fxrLRyMy/Iw==
+        =L97h
+        -----END PGP PRIVATE KEY BLOCK-----
+
     ports:
       - "8080:8080"
     restart: unless-stopped

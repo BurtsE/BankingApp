@@ -5,6 +5,7 @@ import (
 	"BankingApp/internal/router"
 	"BankingApp/internal/service"
 	bankingService "BankingApp/internal/service/banking"
+	cardService "BankingApp/internal/service/cards"
 	userService "BankingApp/internal/service/users"
 	storageImpl "BankingApp/internal/storage/postgres"
 	"context"
@@ -20,6 +21,7 @@ type serviceProvider struct {
 	storage        *storageImpl.PostgresRepository
 	userService    service.UserService
 	bankingService service.BankingService
+	cardService    service.CardService
 	router         *router.Router
 	logger         *logrus.Logger
 	errG           *errgroup.Group
@@ -88,11 +90,18 @@ func (s *serviceProvider) BankingService() service.BankingService {
 	return s.bankingService
 }
 
+func (s *serviceProvider) CardService() service.CardService {
+	if s.cardService == nil {
+		s.cardService = cardService.NewCardService(s.Storage())
+	}
+	return s.cardService
+}
+
 // Инициализация http-сервера.Для каждой области отдельная функция инициализации
 func (s *serviceProvider) Router() *router.Router {
 	if s.router == nil {
 		s.router = router.NewRouter(s.Logger(), s.Config())
-		s.router.InitRoutes(s.UserService(), s.BankingService())
+		s.router.InitRoutes(s.UserService(), s.BankingService(), s.CardService())
 		s.errG.Go(func() error {
 			<-s.ctx.Done()
 			s.logger.Println("shutting down server...")

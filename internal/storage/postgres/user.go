@@ -59,11 +59,11 @@ func (r *PostgresRepository) FindByUsername(ctx context.Context, username string
 	return user, nil
 }
 
-func (r *PostgresRepository) FindByID(ctx context.Context, userID int64) (*model.User, error) {
+func (r *PostgresRepository) FindByID(ctx context.Context, userID string) (*model.User, error) {
 	query := `
 		SELECT uuid, email, password, full_name, created_at
 		FROM users
-		WHERE id = $1
+		WHERE uuid = $1
 	`
 	row := r.pool.QueryRow(ctx, query, userID)
 	user := &model.User{}

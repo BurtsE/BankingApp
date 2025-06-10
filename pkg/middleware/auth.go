@@ -17,7 +17,6 @@ type contextKey string
 const UserIDKey contextKey = "userID"
 
 // NewAuthMiddleware создает middleware для валидации JWT-токена.
-// Секрет должен быть передан параметром (или через env/config), чтобы обеспечить расширяемость и тестируемость.
 func NewAuthMiddleware(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

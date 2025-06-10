@@ -61,10 +61,10 @@ func (s *Service) Register(ctx context.Context, email, username, password, fullN
 func (s *Service) Authenticate(ctx context.Context, email, password string) (string, time.Time, error) {
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil || user == nil {
-		return "", time.Time{}, errors.New("неверный логин или пароль")
+		return "", time.Time{}, errors.New("пользователя с таким email не существует")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", time.Time{}, errors.New("неверный логин или пароль")
+		return "", time.Time{}, errors.New("неверный пароль")
 	}
 
 	// Генерируем JWT
@@ -81,6 +81,6 @@ func (s *Service) Authenticate(ctx context.Context, email, password string) (str
 	return tokenStr, exp, nil
 }
 
-func (s *Service) GetByID(ctx context.Context, userID int64) (*model.User, error) {
+func (s *Service) GetByID(ctx context.Context, userID string) (*model.User, error) {
 	return s.repo.FindByID(ctx, userID)
 }

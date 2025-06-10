@@ -7,8 +7,9 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
-	"io"
 	"log"
 	"math/big"
 	"time"
@@ -50,7 +51,12 @@ func (cs *CardService) GenerateVirtualCard(ctx context.Context, accountID int64,
 		CreatedAt:      time.Now(),
 	}
 	card.GenerateTimeExpiry()
-	card.CVV = cs.generateCVV(card.PAN, time.Date(card.ExpiryYear, time.Month(card.ExpiryMonth), 0, 0, 0, 0, 0, time.Local))
+	cvv, err := cs.generateCVV(card)
+	if err != nil {
+		return nil, err
+	}
+	card.CVV = cvv
+
 	id, err := cs.storage.CreateVirtualCard(ctx, card)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при создании карты: %w", err)
@@ -64,7 +70,11 @@ func (cs *CardService) GetCardsByAccount(ctx context.Context, accountID int64) (
 		return nil, fmt.Errorf("ошибка получения карт: %w", err)
 	}
 	for _, card := range cards {
-		card.CVV = cs.generateCVV(card.PAN, time.Date(card.ExpiryYear, time.Month(card.ExpiryMonth), 0, 0, 0, 0, 0, time.Local))
+		cvv, err := cs.generateCVV(card)
+		if err != nil {
+			return nil, err
+		}
+		card.CVV = cvv
 	}
 	return cards, nil
 }
@@ -72,18 +82,45 @@ func (cs *CardService) GetCardByIDForOwner(ctx context.Context, cardID, ownerUse
 	panic("implement")
 }
 
-func (cs *CardService) generateCVV(pan string, expiryDate time.Time) string {
-	dst := []byte{}
-	nonce := make([]byte, cs.gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		fmt.Println(err)
+func (cs *CardService) generateCVV(card *model.Card) (string, error) {
+	// Create a hash of the combined input
+	combined := card.PAN + "|" + time.Date(card.ExpiryYear, time.Month(card.ExpiryMonth), 0, 0, 0, 0, 0, time.Local).String()
+
+	// Hash the combined input to get a consistent key
+	hasher := sha256.New()
+	hasher.Write([]byte(combined))
+	key := hasher.Sum(nil)[:aes.BlockSize] // Use first 16 bytes as AES key
+
+	// Create a cipher block
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
 	}
-	seal := cs.gcm.Seal(dst, nonce, []byte(pan+expiryDate.String()), nil)[:3]
+
+	// Create a GCM mode
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	// We'll use a fixed nonce (since input is always the same)
+	nonce := make([]byte, gcm.NonceSize())
+
+	// Encrypt some fixed data (we just need consistent output)
+	// Using the variables again as plaintext to incorporate all input
+	ciphertext := gcm.Seal(nil, nonce, []byte(combined), nil)
+
+	// Convert first 4 bytes of ciphertext to a number
+	num := binary.BigEndian.Uint32(ciphertext[:4])
+
+	// Reduce to three digits (000-999)
+
 	cvv := make([]byte, 0, 3)
-	for i := range 3 {
-		cvv = append(cvv, seal[i]%10)
+	for range 3 {
+		cvv = append(cvv, byte(num%10)+48)
+		num /= 10
 	}
-	return string(cvv)
+	return string(cvv), nil
 }
 
 func (cs *CardService) generatePAN() (string, error) {
@@ -103,9 +140,12 @@ func (cs *CardService) generatePAN() (string, error) {
 		}
 	}
 	lastDigit := 0
-	for sum+lastDigit%10 != 0 {
+	for (sum+lastDigit)%10 != 0 {
 		lastDigit++
 	}
 	pan = append(pan, byte(lastDigit))
+	for i := range pan {
+		pan[i] += 48
+	}
 	return string(pan), nil
 }

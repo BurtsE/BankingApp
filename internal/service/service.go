@@ -10,7 +10,7 @@ import (
 type UserService interface {
 	Register(ctx context.Context, email, username, password, fullName string) (*model.User, error)
 	Authenticate(ctx context.Context, email, password string) (jwtToken string, expiresAt time.Time, err error)
-	GetByID(ctx context.Context, userID int64) (*model.User, error)
+	GetByID(ctx context.Context, userID string) (*model.User, error)
 }
 
 type BankingService interface {

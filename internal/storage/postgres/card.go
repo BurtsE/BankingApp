@@ -2,12 +2,10 @@ package postgres
 
 import (
 	"BankingApp/internal/model"
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 
-	"golang.org/x/crypto/openpgp"
+	"github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
 func (p *PostgresRepository) CreateVirtualCard(ctx context.Context, card *model.Card) (int64, error) {
@@ -17,7 +15,7 @@ func (p *PostgresRepository) CreateVirtualCard(ctx context.Context, card *model.
 	}
 	query := `
 		INSERT INTO cards (account_id, encrypted_pan, expiry_month, expiry_year , cardholder_name, is_active, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2::bytea, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 	var id int64
@@ -28,7 +26,7 @@ func (p *PostgresRepository) CreateVirtualCard(ctx context.Context, card *model.
 
 func (p *PostgresRepository) GetCardsByAccount(ctx context.Context, accountID int64) ([]*model.Card, error) {
 	query := `
-		SELECT id, encrypted_pan, expiry_month, expiry_year , cardholder_name, is_active, created_at
+		SELECT id, encode(encrypted_pan, 'escape')::text, expiry_month, expiry_year , cardholder_name, is_active, created_at
 		FROM cards 
 		WHERE account_id=$1
 	`
@@ -44,7 +42,7 @@ func (p *PostgresRepository) GetCardsByAccount(ctx context.Context, accountID in
 			card          model.Card
 			encrypted_pan []byte
 		)
-		if err := rows.Scan(&card.ID, &encrypted_pan, &card.ExpiryMonth, card.ExpiryYear, &card.CardholderName, &card.IsActive, &card.CreatedAt); err != nil {
+		if err := rows.Scan(&card.ID, &encrypted_pan, &card.ExpiryMonth, &card.ExpiryYear, &card.CardholderName, &card.IsActive, &card.CreatedAt); err != nil {
 			return nil, fmt.Errorf("GetCardsByAccount scan: %w", err)
 		}
 		pan, err := p.decryptWithPGP(encrypted_pan)
@@ -52,49 +50,43 @@ func (p *PostgresRepository) GetCardsByAccount(ctx context.Context, accountID in
 			return nil, fmt.Errorf("GetCardsByAccount decryption: %w", err)
 		}
 		card.PAN = string(pan)
+		card.AccountID = accountID
 		cards = append(cards, &card)
 	}
 	return cards, rows.Err()
 }
 
-func (p *PostgresRepository) encryptWithPGP(data []byte) ([]byte, error) {
-	// Загружаем публичный ключ
-	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(p.encryptionPrivateKey))
+// Encrypt plaintext message using a public key
+func (p *PostgresRepository) encryptWithPGP(data []byte) (string, error) {
+	pgp := crypto.PGP()
+	// Encrypt plaintext message using a public key
+	encHandle, err := pgp.Encryption().Recipient(p.publicKey).New()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	// Шифруем
-	var buf bytes.Buffer
-	writer, err := openpgp.Encrypt(&buf, keyring, nil, nil, nil)
+	pgpMessage, err := encHandle.Encrypt(data)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if _, err := writer.Write(data); err != nil {
-		return nil, err
+	armored, err := pgpMessage.Armor()
+	if err != nil {
+		return "", err
 	}
-	writer.Close()
-
-	return buf.Bytes(), nil
+	return armored, nil
 }
 
-func (p *PostgresRepository) decryptWithPGP(encrypted []byte) ([]byte, error) {
-	// Загружаем приватный ключ
-	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(p.encryptionPrivateKey))
-	if err != nil {
-		return nil, err
-	}
+// Decrypt armored encrypted message using the private key and obtain the plaintext
+func (p *PostgresRepository) decryptWithPGP(encrypted []byte) (string, error) {
+	pgp := crypto.PGP()
 
-	// Расшифровываем
-	md, err := openpgp.ReadMessage(bytes.NewReader(encrypted), keyring, nil, nil)
+	// Decrypt armored encrypted message using the private key and obtain the plaintext
+	decHandle, err := pgp.Decryption().DecryptionKey(p.privateKey).New()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	decrypted, err := io.ReadAll(md.UnverifiedBody)
+	decrypted, err := decHandle.Decrypt(encrypted, crypto.Armor)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	return decrypted, nil
+	return decrypted.String(), nil
 }
