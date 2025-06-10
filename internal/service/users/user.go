@@ -45,11 +45,11 @@ func (s *Service) Register(ctx context.Context, email, username, password, fullN
 	}
 
 	user := &model.User{
-		UUID:      uuid.New().String(),
-		Email:     email,
-		Password:  string(hash),
-		FullName:  fullName,
-		CreatedAt: time.Now(),
+		UUID:         uuid.New().String(),
+		Email:        email,
+		PasswordHash: string(hash),
+		FullName:     fullName,
+		CreatedAt:    time.Now(),
 	}
 	err = s.repo.CreateUser(ctx, user)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *Service) Authenticate(ctx context.Context, email, password string) (str
 	if err != nil || user == nil {
 		return "", time.Time{}, errors.New("неверный логин или пароль")
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return "", time.Time{}, errors.New("неверный логин или пароль")
 	}
 

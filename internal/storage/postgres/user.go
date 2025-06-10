@@ -14,7 +14,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user *model.User) e
 		VALUES ($1, $2, $3, $4, $5)
 
 	`
-	_, err := r.pool.Exec(ctx, query, user.UUID, user.Email, user.Password, user.FullName, user.CreatedAt)
+	_, err := r.pool.Exec(ctx, query, user.UUID, user.Email, user.PasswordHash, user.FullName, user.CreatedAt)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (r *PostgresRepository) FindByEmail(ctx context.Context, email string) (*mo
 	`
 	row := r.pool.QueryRow(ctx, query, email)
 	user := &model.User{}
-	err := row.Scan(&user.UUID, &user.Email, &user.Password, &user.FullName, &user.CreatedAt)
+	err := row.Scan(&user.UUID, &user.Email, &user.PasswordHash, &user.FullName, &user.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -49,7 +49,7 @@ func (r *PostgresRepository) FindByUsername(ctx context.Context, username string
 	`
 	row := r.pool.QueryRow(ctx, query, username)
 	user := &model.User{}
-	err := row.Scan(&user.UUID, &user.Email, &user.Password, &user.FullName, &user.CreatedAt)
+	err := row.Scan(&user.UUID, &user.Email, &user.PasswordHash, &user.FullName, &user.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -67,7 +67,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, userID int64) (*model
 	`
 	row := r.pool.QueryRow(ctx, query, userID)
 	user := &model.User{}
-	err := row.Scan(&user.UUID, &user.Email, &user.Password, &user.FullName, &user.CreatedAt)
+	err := row.Scan(&user.UUID, &user.Email, &user.PasswordHash, &user.FullName, &user.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
