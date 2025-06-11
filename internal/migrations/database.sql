@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE TABLE IF NOT EXISTS cards (
     id BIGSERIAL PRIMARY KEY,
     account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    encrypted_pan VARCHAR(1024) NOT NULL,
+    encrypted_pan BYTEA NOT NULL,
     expiry_month INT NOT NULL CHECK (expiry_month >= 1 AND expiry_month <= 12),
     expiry_year INT NOT NULL,
     -- encrypted_cvv VARCHAR(255) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS credits (
     user_id VARCHAR(256) NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
     amount NUMERIC(18,2) NOT NULL,
     currency VARCHAR(8) NOT NULL,
-    rate NUMERIC(8,3) NOT NULL,           -- процентная ставка
+    monthly_rate NUMERIC(8,3) NOT NULL,           -- процентная ставка
     term_months INT NOT NULL,
     status VARCHAR(32) NOT NULL,          -- active, closed, overdue и т.д.
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()

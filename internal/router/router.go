@@ -4,9 +4,7 @@ import (
 	"BankingApp/internal/config"
 	"BankingApp/pkg/middleware"
 	"context"
-	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	"BankingApp/internal/service"
@@ -22,10 +20,11 @@ type Router struct {
 	userService    service.UserService
 	bankingService service.BankingService
 	cardService    service.CardService
+	creditService  service.CreditService
 	srv            *http.Server
 }
 
-// NewRouter — конструктор роутера, регистрирует все endpoint'ы
+// NewRouter — конструктор роутера
 func NewRouter(logger *logrus.Logger, cfg *config.Config) *Router {
 	r := &Router{
 		muxRouter: mux.NewRouter().PathPrefix("/api/v1").Subrouter(),
@@ -49,26 +48,19 @@ func (r *Router) Stop(ctx context.Context) error {
 	return r.srv.Shutdown(ctx)
 }
 
-// InitUserService инициализирует сервис работы с пользователями
-func (r *Router) InitRoutes(userService service.UserService, bankingService service.BankingService, cardService service.CardService) {
+// InitRoutes регистрирует эндпоинты
+func (r *Router) InitRoutes(userService service.UserService, bankingService service.BankingService, cardService service.CardService, creditService service.CreditService) {
 	r.userService = userService
 	r.bankingService = bankingService
 	r.cardService = cardService
+	r.creditService = creditService
 	r.InitUserRoutes()
 	r.InitCardRoutes()
 	r.InitBankingRoutes()
+	r.InitCreditRoutes()
 }
 
 // Handler возвращает основной http.Handler
 func (r *Router) Handler() http.Handler {
 	return r.muxRouter
-}
-
-func ParseIDFromVars(r *http.Request, varName string) (int64, error) {
-	vars := mux.Vars(r)
-	raw, ok := vars[varName]
-	if !ok {
-		return 0, errors.New("missing id")
-	}
-	return strconv.ParseInt(raw, 10, 64)
 }

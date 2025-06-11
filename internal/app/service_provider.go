@@ -6,6 +6,7 @@ import (
 	"BankingApp/internal/service"
 	bankingService "BankingApp/internal/service/banking"
 	cardService "BankingApp/internal/service/cards"
+	creditService "BankingApp/internal/service/credit"
 	userService "BankingApp/internal/service/users"
 	storageImpl "BankingApp/internal/storage/postgres"
 	"context"
@@ -14,7 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// serviceProvider есть DI-контейнер, производящий инициализацию сервисов и подключения к БД.
+// serviceProvider - DI-контейнер, производящий инициализацию сервисов и подключения к БД.
 // Глобальный контекст добавлен для Graceful shutdown
 type serviceProvider struct {
 	cfg            *config.Config
@@ -22,6 +23,7 @@ type serviceProvider struct {
 	userService    service.UserService
 	bankingService service.BankingService
 	cardService    service.CardService
+	creditService  service.CreditService
 	router         *router.Router
 	logger         *logrus.Logger
 	errG           *errgroup.Group
@@ -97,11 +99,18 @@ func (s *serviceProvider) CardService() service.CardService {
 	return s.cardService
 }
 
+func (s *serviceProvider) CreditService() service.CreditService {
+	if s.creditService == nil {
+		s.creditService = creditService.NewCreditService(s.Storage())
+	}
+	return s.creditService
+}
+
 // Инициализация http-сервера.Для каждой области отдельная функция инициализации
 func (s *serviceProvider) Router() *router.Router {
 	if s.router == nil {
 		s.router = router.NewRouter(s.Logger(), s.Config())
-		s.router.InitRoutes(s.UserService(), s.BankingService(), s.CardService())
+		s.router.InitRoutes(s.UserService(), s.BankingService(), s.CardService(), s.CreditService())
 		s.errG.Go(func() error {
 			<-s.ctx.Done()
 			s.logger.Println("shutting down server...")

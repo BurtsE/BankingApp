@@ -59,18 +59,18 @@ func (s *BankingService) Transfer(ctx context.Context, fromAccountID, toAccountI
 	if from.Balance < amount {
 		return errors.New("insufficient balance")
 	}
-	tr, err := s.storage.BeginTransaction(ctx)
+	tx, err := s.storage.BeginTransaction(ctx)
 	if err != nil {
 		return err
 	}
-	defer tr.Rollback(ctx)
+	defer tx.Rollback(ctx)
 	if err := s.storage.UpdateAccountBalance(ctx, fromAccountID, -amount); err != nil {
 		return err
 	}
 	if err := s.storage.UpdateAccountBalance(ctx, toAccountID, amount); err != nil {
 		return err
 	}
-	if err := tr.Commit(ctx); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit error: %w", err)
 	}
 	return nil

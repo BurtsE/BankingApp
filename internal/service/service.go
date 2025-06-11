@@ -29,12 +29,12 @@ type CardService interface {
 }
 
 type CreditService interface {
-	ApplyCredit(ctx context.Context, userID int64, amount float64, currency string, months int, rate float64) (*model.Credit, []*model.PaymentSchedule, error)
-	GeneratePaymentSchedule(ctx context.Context, creditID int64) ([]*model.PaymentSchedule, error)
-	AutoWithdrawCreditPayments(ctx context.Context, now time.Time) error // для background-шейдулера
-	ProcessFine(ctx context.Context, creditID int64, overdueAmount float64) error
-	GetCreditsByUser(ctx context.Context, userID int64) ([]*model.Credit, error)
-	GetPaymentSchedule(ctx context.Context, creditID int64) ([]*model.PaymentSchedule, error)
+	IssueCredit(ctx context.Context, credit model.Credit) ([]*model.PaymentSchedule, error)
+	// GeneratePaymentSchedule(ctx context.Context, creditID int64) ([]*model.PaymentSchedule, error)
+	// AutoWithdrawCreditPayments(ctx context.Context, now time.Time) error // для background-шейдулера
+	// ProcessFine(ctx context.Context, creditID int64, overdueAmount float64) error
+	// GetCreditsByUser(ctx context.Context, userID int64) ([]*model.Credit, error)
+	// GetPaymentSchedule(ctx context.Context, creditID int64) ([]*model.PaymentSchedule, error)
 }
 
 type AnalyticService interface {

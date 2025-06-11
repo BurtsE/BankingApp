@@ -46,7 +46,7 @@ func NewPostgresRepository(ctx context.Context, cfg *config.Config) (*PostgresRe
 		return nil, err
 	}
 
-	privateKey, err := crypto.NewPrivateKeyFromArmored(config.GetEncryptionPrivateKey(), []byte("pass_phrase"))
+	privateKey, err := crypto.NewPrivateKeyFromArmored(config.GetEncryptionPrivateKey(), []byte(passPhrase))
 	if err != nil {
 		return nil, err
 	}

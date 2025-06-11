@@ -75,7 +75,20 @@ func (p *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 	if rows == 0 {
 		return errors.New("account not found")
 	}
-	return nil
+	var transactionType string
+	switch {
+	case amount > 0:
+		transactionType = "deposit"
+	default:
+		transactionType = "withdraw"
+	}
+	query = `
+	INSERT 
+		INTO transactions (account_id, amount, currency, type, status)
+		VALUES($1, $2, $3, $4, $5)
+	`
+	_, err = p.pool.Exec(ctx, query, &accountID, &amount, "RUB", &transactionType, "success")
+	return err
 }
 
 func (p *PostgresRepository) BeginTransaction(ctx context.Context) (storage.Transaction, error) {

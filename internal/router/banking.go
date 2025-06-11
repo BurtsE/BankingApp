@@ -8,20 +8,12 @@ import (
 	"strconv"
 
 	"BankingApp/internal/config"
-	"BankingApp/internal/service"
 	"BankingApp/pkg/middleware"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 // --- PROTECTED ROUTES (JWT Auth Required) ---
-
-type BankingSubRouter struct {
-	muxRouter      *mux.Router
-	logger         *logrus.Logger
-	bankingService service.BankingService
-}
 
 func (r *Router) InitBankingRoutes() {
 	authMiddleware := middleware.NewAuthMiddleware(config.GetJWTSecretKey())
@@ -32,15 +24,6 @@ func (r *Router) InitBankingRoutes() {
 	bankingRouter.HandleFunc("/account/{id:[0-9]+}/withdraw", r.withdrawHandler).Methods("POST")
 	bankingRouter.HandleFunc("/account/transfer", r.transferHandler).Methods("POST")
 }
-
-// func (r *Router) routes() {
-// 	r.muxRouter.HandleFunc("/account", r.createAccountHandler).Methods("POST")
-// 	r.muxRouter.HandleFunc("/account/{id:[0-9]+}/deposit", r.depositHandler).Methods("POST")
-// 	r.muxRouter.HandleFunc("/account/{id:[0-9]+}/withdraw", r.withdrawHandler).Methods("POST")
-// 	r.muxRouter.HandleFunc("/account/transfer", r.transferHandler).Methods("POST")
-// 	r.muxRouter.HandleFunc("/account/{id:[0-9]+}", r.getAccountByIDHandler).Methods("GET")
-// 	r.muxRouter.HandleFunc("/account/user/{id:[0-9]+}/accounts", r.getAccountsByUserHandler).Methods("GET")
-// }
 
 // --------- API struct TYPES -----------
 
@@ -67,7 +50,7 @@ func (r *Router) createAccountHandler(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 	var reqBody createAccountRequest
-	if err := json.NewDecoder(req.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(req.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
