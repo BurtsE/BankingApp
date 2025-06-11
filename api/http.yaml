@@ -1,205 +1,547 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: BankingApp API
-  description: REST API specification for BankingApp (users, banking, cards)
   version: 1.0.0
+  description: >
+    API для банковского приложения.
 servers:
-  - url: http://localhost:8080
+  - url: '{{baseUrl}}'
 paths:
-  /api/v1/user/register:
+  /user/register:
+    parameters: []
     post:
-      summary: Register a new user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRegisterRequest'
+      summary: Регистрация нового пользователя
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
       responses:
         '201':
-          description: User created
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Новый пользователь создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  username:
+                    type: string
+                  full_name:
+                    type: string
         '400':
-          description: Invalid request payload
-  /api/v1/user/login:
-    post:
-      summary: Login user
+          headers: {}
+          description: Некорректные данные запроса
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserLoginRequest'
-      responses:
-        '200':
-          description: Authenticated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthTokenResponse'
-        '401':
-          description: Invalid credentials
-  /api/v1/accounts:
-    get:
-      summary: Get user's bank accounts
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of accounts
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Account'
-  /api/v1/accounts/{accountId}/transactions:
-    get:
-      summary: Get account transaction history
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: accountId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Transaction history
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Transaction'
-  /api/v1/cards:
-    get:
-      summary: List cards for the user
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of cards
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Card'
-  /api/v1/cards/{cardId}/activate:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                full_name:
+                  type: string
+  /user/login:
+    parameters: []
     post:
-      summary: Activate a card
-      security:
-        - bearerAuth: []
+      summary: Аутентификация пользователя
       parameters:
-        - name: cardId
-          in: path
-          required: true
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
           schema:
             type: string
       responses:
         '200':
-          description: Card activated
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Успешная аутентификация
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Card'
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+        '400':
+          headers: {}
+          description: Ошибка в теле запроса
+        '401':
+          headers: {}
+          description: Неуспешная аутентификация
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+  /user/user/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: '(Required) '
+        example: '2'
+        schema:
+          type: integer
+    get:
+      summary: Получить пользователя по ID
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  username:
+                    type: string
+                  full_name:
+                    type: string
         '404':
-          description: Card not found
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-  schemas:
-    UserRegisterRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-        email:
-          type: string
-      required: [username, password, email]
-    UserLoginRequest:
-      type: object
-      properties:
-        email:
-          type: string
-        password:
-          type: string
-      required: [username, password]
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        username:
-          type: string
-        email:
-          type: string
-    AuthTokenResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-        token_type:
-          type: string
-          example: Bearer
-    Account:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-          example: checking
-        balance:
-          type: number
-          format: float
-        currency:
-          type: string
-          example: USD
-    Transaction:
-      type: object
-      properties:
-        id:
-          type: string
-        date:
-          type: string
-          format: date-time
-        amount:
-          type: number
-        currency:
-          type: string
-        description:
-          type: string
-    Card:
-      type: object
-      properties:
-        id:
-          type: string
-        holder_name:
-          type: string
-        number:
-          type: string
-        expiration:
-          type: string
-        status:
-          type: string
-          enum: [active, inactive, blocked]
-
-tags:
-  - name: users
-    description: User registration and authentication
-  - name: banking
-    description: Banking operations, accounts, transactions
-  - name: cards
-    description: Card management
+          headers: {}
+          description: Пользователь не найден
+  /banking/account/1/deposit:
+    parameters: []
+    post:
+      summary: Пополнить счет
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers: {}
+          description: Операция выполнена
+        '400':
+          headers: {}
+          description: Некорректные параметры
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+  /banking/account/5/withdraw:
+    parameters: []
+    post:
+      summary: Снять деньги со счета
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers: {}
+          description: Операция выполнена
+        '400':
+          headers: {}
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+  /banking/account/2/deposit:
+    parameters: []
+    post:
+      summary: Получить счет по ID
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Информация о счете
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  user_id:
+                    type: integer
+                  balance:
+                    type: number
+                  currency:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+        '404':
+          headers: {}
+          description: Счет не найден
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+  /banking/account/transfer:
+    parameters: []
+    post:
+      summary: Перевод между счетами
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers: {}
+          description: Перевод выполнен
+        '400':
+          headers: {}
+          description: Ошибка в параметрах
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_account_id:
+                  type: integer
+                to_account_id:
+                  type: integer
+                amount:
+                  type: integer
+  /banking/account/:
+    parameters: []
+    post:
+      summary: Получить ��чета пользователя по его ID
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Список счетов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    user_id:
+                      type: integer
+                    balance:
+                      type: number
+                    currency:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+        '400':
+          headers: {}
+          description: Ошибка параметров
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+  /banking/account:
+    parameters: []
+    post:
+      summary: Создать банковский счет
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '201':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Счет создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  user_id:
+                    type: integer
+                  balance:
+                    type: number
+                  currency:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+        '400':
+          headers: {}
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                currency:
+                  type: string
+  /card/issue:
+    parameters: []
+    post:
+      summary: Выпуск новой карты
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '201':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Карта выпущена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_id:
+                  type: integer
+  /card/show:
+    parameters: []
+    get:
+      summary: Получить информацию о карте
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Описание карты
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_id:
+                  type: integer
+  /credit/issue:
+    parameters: []
+    post:
+      summary: Оформление кредита
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '201':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Кредит оформлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                currency:
+                  type: string
+                months:
+                  type: integer
+                rate:
+                  type: number
+  /credit/schedule:
+    parameters: []
+    post:
+      summary: Запуск графика автоматических платежей
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: График запущен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /credit/payment-graph:
+    parameters: []
+    post:
+      summary: Генерация графика платежей
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: График платежей сгенерирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
