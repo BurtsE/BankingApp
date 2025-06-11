@@ -45,7 +45,8 @@ func (r *Router) issueCardHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*20)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
 	user, err := r.userService.GetByID(ctx, UUID)
 
 	if err != nil {
@@ -84,7 +85,8 @@ func (r *Router) showCardHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*20)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
 	account, err := r.bankingService.GetAccountByID(ctx, reqBody.AccountId)
 	if err != nil || account.UserID != UUID {
 		r.logger.Println(err)
