@@ -46,6 +46,7 @@ type transferRequest struct {
 func (r *Router) createAccountHandler(w http.ResponseWriter, req *http.Request) {
 	userID, err := middleware.ValidateUser(req)
 	if err != nil {
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid user", http.StatusUnauthorized)
 		return
 	}
@@ -56,8 +57,8 @@ func (r *Router) createAccountHandler(w http.ResponseWriter, req *http.Request) 
 	}
 	account, err := r.bankingService.CreateAccount(req.Context(), userID, reqBody.Currency)
 	if err != nil {
+		r.logger.WithError(err).Error("account creation fail")
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		r.logger.WithError(err).Error("CreateAccount failed")
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -67,6 +68,7 @@ func (r *Router) createAccountHandler(w http.ResponseWriter, req *http.Request) 
 func (r *Router) depositHandler(w http.ResponseWriter, req *http.Request) {
 	userID, err := middleware.ValidateUser(req)
 	if err != nil {
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
 	}
@@ -82,12 +84,13 @@ func (r *Router) depositHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	account, err := r.bankingService.GetAccountByID(context.Background(), accountID)
 	if err != nil || account.UserID != userID {
+		r.logger.WithError(err).Error("failed to get account")
 		http.Error(w, "could not get account", http.StatusInternalServerError)
 		return
 	}
 	if err := r.bankingService.Deposit(req.Context(), account.ID, reqBody.Amount); err != nil {
+		r.logger.WithError(err).Error("failed to deposit")
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		r.logger.WithError(err).Error("Deposit failed")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -97,6 +100,7 @@ func (r *Router) depositHandler(w http.ResponseWriter, req *http.Request) {
 func (r *Router) withdrawHandler(w http.ResponseWriter, req *http.Request) {
 	userID, err := middleware.ValidateUser(req)
 	if err != nil {
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
 	}
@@ -112,12 +116,13 @@ func (r *Router) withdrawHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	account, err := r.bankingService.GetAccountByID(context.Background(), accountID)
 	if err != nil || account.UserID != userID {
+		r.logger.WithError(err).Error("failed to get account")
 		http.Error(w, "could not get account", http.StatusInternalServerError)
 		return
 	}
 	if err := r.bankingService.Withdraw(req.Context(), accountID, reqBody.Amount); err != nil {
+		r.logger.WithError(err).Error("failed to withdraw")
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		r.logger.WithError(err).Error("Withdraw failed")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -127,6 +132,7 @@ func (r *Router) withdrawHandler(w http.ResponseWriter, req *http.Request) {
 func (r *Router) transferHandler(w http.ResponseWriter, req *http.Request) {
 	userID, err := middleware.ValidateUser(req)
 	if err != nil {
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid request", http.StatusUnauthorized)
 		return
 	}
@@ -141,12 +147,13 @@ func (r *Router) transferHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	account, err := r.bankingService.GetAccountByID(context.Background(), reqBody.FromAccountID)
 	if err != nil || account.UserID != userID {
+		r.logger.WithError(err).Error("failed to get account")
 		http.Error(w, "Could not get account", http.StatusBadRequest)
 		return
 	}
 	if err := r.bankingService.Transfer(req.Context(), reqBody.FromAccountID, reqBody.ToAccountID, reqBody.Amount); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		r.logger.WithError(err).Error("Transfer failed")
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -35,7 +35,7 @@ type showCardsRequest struct {
 func (r *Router) issueCardHandler(w http.ResponseWriter, req *http.Request) {
 	UUID, err := middleware.ValidateUser(req)
 	if err != nil {
-		r.logger.Println(err)
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid user", http.StatusUnauthorized)
 		return
 	}
@@ -48,22 +48,21 @@ func (r *Router) issueCardHandler(w http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	user, err := r.userService.GetByID(ctx, UUID)
-
 	if err != nil {
-		r.logger.Println(err)
+		r.logger.WithError(err).Error("failed to get user")
 		http.Error(w, "could not get user", http.StatusInternalServerError)
 		return
 	}
 	account, err := r.bankingService.GetAccountByID(ctx, reqBody.AccountId)
 	if err != nil || account.UserID != UUID {
-		r.logger.Println(err)
+		r.logger.WithError(err).Error("failed to get account")
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	card, err := r.cardService.GenerateVirtualCard(ctx, reqBody.AccountId, user.FullName)
 	if err != nil {
-		r.logger.Println(err)
+		r.logger.WithError(err).Error("failed to generate card")
 		http.Error(w, "card generation error", http.StatusInternalServerError)
 		return
 	}
@@ -73,15 +72,12 @@ func (r *Router) issueCardHandler(w http.ResponseWriter, req *http.Request) {
 func (r *Router) showCardHandler(w http.ResponseWriter, req *http.Request) {
 	UUID, err := middleware.ValidateUser(req)
 	if err != nil {
-		r.logger.Println(err)
-
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid user", http.StatusUnauthorized)
 		return
 	}
 	var reqBody showCardsRequest
 	if err := json.NewDecoder(req.Body).Decode(&reqBody); err != nil {
-		r.logger.Println(err)
-
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
@@ -89,13 +85,13 @@ func (r *Router) showCardHandler(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 	account, err := r.bankingService.GetAccountByID(ctx, reqBody.AccountId)
 	if err != nil || account.UserID != UUID {
-		r.logger.Println(err)
+		r.logger.WithError(err).Error("failed to get account")
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 	cards, err := r.cardService.GetCardsByAccount(req.Context(), reqBody.AccountId)
 	if err != nil || account.UserID != UUID {
-		r.logger.Println(err)
+		r.logger.WithError(err).Errorf("failed to get cards for account: %w", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}

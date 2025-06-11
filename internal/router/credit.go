@@ -34,6 +34,7 @@ func (r *Router) InitCreditRoutes() {
 func (r *Router) issueCreditHandler(w http.ResponseWriter, req *http.Request) {
 	userID, err := middleware.ValidateUser(req)
 	if err != nil {
+		r.logger.WithError(err).Error("failed to authenticate user")
 		http.Error(w, "Invalid user", http.StatusUnauthorized)
 		return
 	}
@@ -43,11 +44,11 @@ func (r *Router) issueCreditHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if reqBody.Amount <= 0 || reqBody.Months <= 0 || reqBody.Rate <= 0 || reqBody.Currency != "RUB" {
-
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*20)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
 	credit := model.Credit{
 		UserID:      userID,
 		Amount:      reqBody.Amount,
